@@ -20,6 +20,11 @@ const APP_BASE_URL = process.env.APP_BASE_URL ?? "https://app.somesoftware.io";
 // get verified with zero production credentials.
 const MOCK_MODE = process.env.MOCK_MODE === "true";
 
+// Independent of MOCK_MODE: if a real Resend key is configured, actually send
+// the email (still built from mock data when MOCK_MODE is on) instead of just
+// logging it. Lets you verify real delivery without needing Supabase yet.
+const REAL_SEND = Boolean(process.env.RESEND_API_KEY);
+
 function isAuthorized(request: NextRequest): boolean {
   const key = process.env.INTERNAL_API_KEY;
   if (!key) return false; // this route must never run without an explicitly configured key
@@ -87,6 +92,7 @@ export async function POST(request: NextRequest) {
 
   const result = {
     mockMode: MOCK_MODE,
+    realSend: REAL_SEND,
     dryRun: Boolean(body.dryRun),
     week,
     year,
@@ -131,10 +137,10 @@ export async function POST(request: NextRequest) {
         fromEmail: email.fromEmail,
         replyTo: email.replyTo,
       };
-      if (MOCK_MODE) {
-        await mockSendTrendDigest(sendParams);
-      } else {
+      if (REAL_SEND) {
         await sendTrendDigest(sendParams);
+      } else {
+        await mockSendTrendDigest(sendParams);
       }
 
       if (!body.dryRun) {
