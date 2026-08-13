@@ -36,6 +36,9 @@ interface RequestBody {
   testEmail?: string;
   weekNumber?: number;
   year?: number;
+  fromName?: string;
+  fromEmail?: string;
+  replyTo?: string;
 }
 
 async function parseBody(request: NextRequest): Promise<RequestBody> {
@@ -48,6 +51,9 @@ async function parseBody(request: NextRequest): Promise<RequestBody> {
       testEmail: typeof b.testEmail === "string" ? b.testEmail : undefined,
       weekNumber: typeof b.weekNumber === "number" ? b.weekNumber : undefined,
       year: typeof b.year === "number" ? b.year : undefined,
+      fromName: typeof b.fromName === "string" ? b.fromName : undefined,
+      fromEmail: typeof b.fromEmail === "string" ? b.fromEmail : undefined,
+      replyTo: typeof b.replyTo === "string" ? b.replyTo : undefined,
     };
   } catch {
     return {};
@@ -126,6 +132,9 @@ export async function POST(request: NextRequest) {
         trends,
         ctaUrl: `${APP_BASE_URL}/trends`,
         unsubscribeUrl: `${APP_BASE_URL}/unsubscribe?t=${subscriber.unsubscribeToken}`,
+        fromName: body.fromName,
+        fromEmail: body.fromEmail,
+        replyTo: body.replyTo,
       });
 
       const sendParams = {
