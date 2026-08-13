@@ -3,10 +3,9 @@ import type { GenerateEmailRequest, GenerateEmailResponse, TrendItem } from "./t
 
 const DEFAULT_FROM_NAME = "SoMe";
 const DEFAULT_FROM_EMAIL = "trender@app.somesoftware.io";
-// Relative path works for local preview. Before sending real email, this
-// needs to be an absolute URL on whatever domain public/Logo.png is
-// actually deployed to (recipients' mail clients can't resolve "/Logo.png").
-const LOGO_URL = "/Logo.png";
+// Must be an absolute URL — recipients' mail clients can't resolve a
+// relative path like "/Logo.png" the way a browser on the same origin can.
+const LOGO_URL = "https://sometrendautomation1-6anu.vercel.app/Logo.png";
 
 const PAGE_BG = "#f3effa";
 const CARD_BG = "#ffffff";
