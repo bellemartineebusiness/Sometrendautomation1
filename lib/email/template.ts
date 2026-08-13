@@ -252,7 +252,7 @@ function renderPlainText(
   return [
     `Hej ${data.recipientName}`,
     "",
-    `SoMe presenterar dina hetaste trender inom ${data.niche}`,
+    `Dina hetaste trender inom ${data.niche}`,
     "",
     "VECKANS STÖRSTA TREND",
     `${featured.title} (${featured.platform.toUpperCase()}). ${growthSentence(featured.growthPercent)}`,
@@ -315,7 +315,7 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
           <td style="vertical-align:middle;">
             <img src="${LOGO_URL}" width="110" height="61" alt="SoMe" style="display:block;width:110px;height:61px;" />
           </td>
-          <td align="right" style="vertical-align:middle;font-size:10.5px;font-weight:700;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:1.2px;">Vecka ${data.weekNumber} trender</td>
+          <td align="right" style="vertical-align:middle;font-size:10.5px;font-weight:700;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:1.2px;">Trender</td>
         </tr>
       </table>
     </td>
@@ -329,7 +329,7 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr><td class="sm-px" style="padding:38px 36px 8px;text-align:center;">
           <div style="font-size:17px;font-weight:800;color:${TEXT_PRIMARY};margin-bottom:8px;">Hej ${escapeHtml(data.recipientName)}</div>
-          <div style="font-size:26px;font-weight:800;color:${TEXT_PRIMARY};letter-spacing:-0.5px;line-height:1.3;">SoMe presenterar dina hetaste trender inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span></div>
+          <div style="font-size:26px;font-weight:800;color:${TEXT_PRIMARY};letter-spacing:-0.5px;line-height:1.3;">Dina hetaste trender inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span></div>
         </td></tr>
       </table>
 
