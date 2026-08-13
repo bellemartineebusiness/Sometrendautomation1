@@ -226,9 +226,9 @@ function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number)
     rows.push(`
           <table width="100%" cellpadding="0" cellspacing="0"${i > 0 ? ' style="margin-top:14px;"' : ""}>
             <tr>
-              <td width="48%" class="sm-stack" style="vertical-align:top;">${left}</td>
-              <td width="4%" class="sm-gutter"></td>
-              <td width="48%" class="sm-stack" style="vertical-align:top;">${right ?? ""}</td>
+              <td width="48%" style="vertical-align:top;">${left}</td>
+              <td width="4%"></td>
+              <td width="48%" style="vertical-align:top;">${right ?? ""}</td>
             </tr>
           </table>`);
   }
@@ -293,13 +293,11 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 <style>
   @media screen and (max-width: 480px) {
     .sm-px { padding-left: 20px !important; padding-right: 20px !important; }
-    .sm-stack { display: block !important; width: 100% !important; padding-bottom: 14px !important; }
-    .sm-gutter { display: none !important; }
     /* Keep the desktop hierarchy on mobile: the featured trend stays big
        and portrait (~9:16-ish), the other 4 stay clearly smaller — not
-       the same size as the hero. */
+       the same size as the hero. They stay 2-per-row (not fully stacked). */
     .sm-hero { height: 480px !important; }
-    .sm-card { height: 200px !important; }
+    .sm-card { height: 220px !important; }
   }
 </style>
 </head>
