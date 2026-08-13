@@ -295,9 +295,11 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
     .sm-px { padding-left: 20px !important; padding-right: 20px !important; }
     .sm-stack { display: block !important; width: 100% !important; padding-bottom: 14px !important; }
     .sm-gutter { display: none !important; }
-    /* 9:16 portrait for a ~303px-wide card (375px phone minus padding) */
-    .sm-hero { height: 540px !important; }
-    .sm-card { height: 540px !important; }
+    /* Keep the desktop hierarchy on mobile: the featured trend stays big
+       and portrait (~9:16-ish), the other 4 stay clearly smaller — not
+       the same size as the hero. */
+    .sm-hero { height: 480px !important; }
+    .sm-card { height: 200px !important; }
   }
 </style>
 </head>
