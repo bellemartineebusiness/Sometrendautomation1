@@ -250,9 +250,9 @@ function renderPlainText(
     .join("\n\n");
 
   return [
-    `Hej ${data.recipientName}`,
+    "Veckans trender",
     "",
-    `Dina hetaste trender inom ${data.niche}`,
+    `Hej ${data.recipientName}, vi på SoMe har plockat ut veckans hetaste trender till dig inom ${data.niche}.`,
     "",
     "VECKANS STÖRSTA TREND",
     `${featured.title} (${featured.platform.toUpperCase()}). ${growthSentence(featured.growthPercent)}`,
@@ -328,8 +328,8 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
       <!-- Intro -->
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr><td class="sm-px" style="padding:38px 36px 8px;text-align:center;">
-          <div style="font-size:17px;font-weight:800;color:${TEXT_PRIMARY};margin-bottom:8px;">Hej ${escapeHtml(data.recipientName)}</div>
-          <div style="font-size:26px;font-weight:800;color:${TEXT_PRIMARY};letter-spacing:-0.5px;line-height:1.3;">Dina hetaste trender inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span></div>
+          <div style="font-size:26px;font-weight:800;color:${TEXT_PRIMARY};letter-spacing:-0.5px;line-height:1.3;">Veckans trender</div>
+          <div style="font-size:15px;font-weight:500;color:${TEXT_MUTED};line-height:1.6;margin-top:10px;">Hej ${escapeHtml(data.recipientName)}, vi p&aring; SoMe har plockat ut veckans hetaste trender till dig inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span>.</div>
         </td></tr>
       </table>
 
