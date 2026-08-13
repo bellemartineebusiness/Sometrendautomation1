@@ -105,12 +105,12 @@ function platformIconBadge(platform: string, size: number): string {
 // thumbnail when we have one, otherwise a solid platform-colored fallback —
 // either way it's blurred and scaled up slightly so the blur never shows a
 // sharp/transparent edge at the card boundary.
-function renderBlurredBackdrop(trend: TrendItem, height: number): string {
+function renderBlurredBackdrop(trend: TrendItem, height: number, heightClass: string): string {
   const common = `display:block;width:100%;height:${height}px;object-fit:cover;filter:blur(${BLUR_PX}px);-webkit-filter:blur(${BLUR_PX}px);transform:scale(1.12);`;
   if (trend.thumbnailUrl) {
-    return `<img src="${escapeHtml(trend.thumbnailUrl)}" alt="" style="${common}" />`;
+    return `<img src="${escapeHtml(trend.thumbnailUrl)}" alt="" class="${heightClass}" style="${common}" />`;
   }
-  return `<div style="${platformTileStyle(trend.platform)}${common}"></div>`;
+  return `<div class="${heightClass}" style="${platformTileStyle(trend.platform)}${common}"></div>`;
 }
 
 function growthColors() {
@@ -139,14 +139,15 @@ function renderPhotoCard(params: {
   width: number | "100%";
   height: number;
   radius: number;
+  heightClass: string;
   content: string;
 }): string {
-  const { trend, ctaUrl, width, height, radius, content } = params;
+  const { trend, ctaUrl, width, height, radius, heightClass, content } = params;
   const tableWidth = width === "100%" ? "100%" : width;
   return `<table width="${tableWidth}" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td>
     <a href="${escapeHtml(ctaUrl)}" style="display:block;text-decoration:none;">
-      <div style="position:relative;width:100%;height:${height}px;border-radius:${radius}px;overflow:hidden;background-color:#1c1033;">
-        ${renderBlurredBackdrop(trend, height)}
+      <div class="${heightClass}" style="position:relative;width:100%;height:${height}px;border-radius:${radius}px;overflow:hidden;background-color:#1c1033;">
+        ${renderBlurredBackdrop(trend, height, heightClass)}
         <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,6,20,0.56);"></div>
         <div style="position:absolute;top:0;left:0;right:0;bottom:0;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;">
           ${content}
@@ -174,14 +175,14 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
 
           <div style="flex:1;"></div>
 
-          <div style="margin-bottom:10px;">${platformIconBadge(trend.platform, 36)}</div>
-          <div style="font-size:23px;font-weight:800;color:#ffffff;letter-spacing:-0.4px;line-height:1.25;margin-bottom:6px;">${escapeHtml(trend.title)}</div>
-          ${trend.leadIn ? `<div style="font-size:13.5px;font-style:italic;color:rgba(255,255,255,0.85);margin-bottom:8px;">${escapeHtml(trend.leadIn)}</div>` : ""}
-          <div style="font-size:13.5px;color:rgba(255,255,255,0.92);line-height:1.6;margin-bottom:18px;">${escapeHtml(trend.description)}</div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;"><tr><td align="center">${platformIconBadge(trend.platform, 36)}</td></tr></table>
+          <div style="font-size:23px;font-weight:800;color:#ffffff;letter-spacing:-0.4px;line-height:1.25;margin-bottom:6px;text-align:center;">${escapeHtml(trend.title)}</div>
+          ${trend.leadIn ? `<div style="font-size:13.5px;font-style:italic;color:rgba(255,255,255,0.85);margin-bottom:8px;text-align:center;">${escapeHtml(trend.leadIn)}</div>` : ""}
+          <div style="font-size:13.5px;color:rgba(255,255,255,0.92);line-height:1.6;margin-bottom:18px;text-align:center;">${escapeHtml(trend.description)}</div>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
             <tr>
-              <td style="vertical-align:bottom;word-wrap:break-word;">
+              <td style="vertical-align:bottom;word-wrap:break-word;text-align:center;">
                 <span style="font-size:20px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;">${growthSentence(trend.growthPercent)}</span>
               </td>
               <td width="90" style="vertical-align:bottom;">
@@ -194,9 +195,9 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
           </table>`;
 
   return `
-      <table width="100%" cellpadding="0" cellspacing="0" style="padding:22px 36px 0;">
+      <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="padding:22px 36px 0;">
         <tr><td>
-          ${renderPhotoCard({ trend, ctaUrl, width: "100%", height: 420, radius: 20, content })}
+          ${renderPhotoCard({ trend, ctaUrl, width: "100%", height: 420, radius: 20, heightClass: "sm-hero", content })}
         </td></tr>
       </table>`;
 }
@@ -210,11 +211,11 @@ function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string
             <td align="right" style="vertical-align:top;">${platformIconBadge(trend.platform, 32)}</td>
           </tr></table>
                     <div style="flex:1;"></div>
-                    <div style="font-size:14px;font-weight:800;color:#ffffff;line-height:1.3;margin-bottom:6px;">${escapeHtml(trend.title)}</div>
-                    <div style="font-size:11.5px;color:rgba(255,255,255,0.85);line-height:1.5;margin-bottom:10px;">${escapeHtml(trend.description)}</div>
-                    <div style="font-size:13px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;">${formatGrowth(trend.growthPercent)}</div>`;
+                    <div style="font-size:14px;font-weight:800;color:#ffffff;line-height:1.3;margin-bottom:6px;text-align:center;">${escapeHtml(trend.title)}</div>
+                    <div style="font-size:11.5px;color:rgba(255,255,255,0.85);line-height:1.5;margin-bottom:10px;text-align:center;">${escapeHtml(trend.description)}</div>
+                    <div style="font-size:13px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;text-align:center;">${formatGrowth(trend.growthPercent)}</div>`;
 
-  return renderPhotoCard({ trend, ctaUrl, width: "100%", height: 260, radius: 16, content });
+  return renderPhotoCard({ trend, ctaUrl, width: "100%", height: 260, radius: 16, heightClass: "sm-card", content });
 }
 
 function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number): string {
@@ -226,9 +227,9 @@ function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number)
     rows.push(`
           <table width="100%" cellpadding="0" cellspacing="0"${i > 0 ? ' style="margin-top:14px;"' : ""}>
             <tr>
-              <td width="48%" style="vertical-align:top;">${left}</td>
-              <td width="4%"></td>
-              <td width="48%" style="vertical-align:top;">${right ?? ""}</td>
+              <td width="48%" class="sm-stack" style="vertical-align:top;">${left}</td>
+              <td width="4%" class="sm-gutter"></td>
+              <td width="48%" class="sm-stack" style="vertical-align:top;">${right ?? ""}</td>
             </tr>
           </table>`);
   }
@@ -250,9 +251,9 @@ function renderPlainText(
     .join("\n\n");
 
   return [
-    `SoMe presenterar dina hetaste trender inom ${data.niche}`,
-    "",
     `Hej ${data.recipientName}`,
+    "",
+    `SoMe presenterar dina hetaste trender inom ${data.niche}`,
     "",
     "VECKANS STÖRSTA TREND",
     `${featured.title} (${featured.platform.toUpperCase()}). ${growthSentence(featured.growthPercent)}`,
@@ -290,6 +291,15 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Veckans trender - SoMe</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
+<style>
+  @media screen and (max-width: 480px) {
+    .sm-px { padding-left: 20px !important; padding-right: 20px !important; }
+    .sm-stack { display: block !important; width: 100% !important; padding-bottom: 14px !important; }
+    .sm-gutter { display: none !important; }
+    .sm-hero { height: 320px !important; }
+    .sm-card { height: 220px !important; }
+  }
+</style>
 </head>
 <body style="margin:0;padding:0;background:${PAGE_BG};font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(previewText)}</span>
@@ -299,13 +309,13 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 
   <!-- Header band: real SoMe logo file -->
   <tr>
-    <td style="background-color:${CARD_BG};border-radius:20px 20px 0 0;padding:22px 36px;border-bottom:1px solid ${BORDER_SOFT};">
+    <td class="sm-px" style="background-color:${CARD_BG};border-radius:20px 20px 0 0;padding:22px 36px;border-bottom:1px solid ${BORDER_SOFT};">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="vertical-align:middle;">
             <img src="${LOGO_URL}" width="110" height="61" alt="SoMe" style="display:block;width:110px;height:61px;" />
           </td>
-          <td align="right" style="vertical-align:middle;font-size:10.5px;font-weight:700;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:1.2px;">Vecka ${data.weekNumber} hetaste trender</td>
+          <td align="right" style="vertical-align:middle;font-size:10.5px;font-weight:700;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:1.2px;">Vecka ${data.weekNumber} trender</td>
         </tr>
       </table>
     </td>
@@ -317,9 +327,9 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 
       <!-- Intro -->
       <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="padding:38px 36px 8px;">
+        <tr><td class="sm-px" style="padding:38px 36px 8px;text-align:center;">
+          <div style="font-size:17px;font-weight:800;color:${TEXT_PRIMARY};margin-bottom:8px;">Hej ${escapeHtml(data.recipientName)}</div>
           <div style="font-size:26px;font-weight:800;color:${TEXT_PRIMARY};letter-spacing:-0.5px;line-height:1.3;">SoMe presenterar dina hetaste trender inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span></div>
-          <div style="font-size:15px;font-weight:700;color:${TEXT_MUTED};margin-top:8px;">Hej ${escapeHtml(data.recipientName)}</div>
         </td></tr>
       </table>
 
@@ -328,13 +338,13 @@ ${renderFeaturedTrend(featured, ctaUrl)}
 
       <!-- Divider label -->
       <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="padding:30px 36px 12px;">
-          <div style="font-size:11px;font-weight:800;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:1.2px;border-bottom:1px solid ${BORDER_SOFT};padding-bottom:12px;">Fler trender att h&aring;lla koll p&aring;</div>
+        <tr><td class="sm-px" style="padding:30px 36px 12px;">
+          <div style="font-size:11px;font-weight:800;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:1.2px;text-align:center;border-bottom:1px solid ${BORDER_SOFT};padding-bottom:12px;">Fler trender att h&aring;lla koll p&aring;</div>
         </td></tr>
       </table>
 
       <!-- Trend grid -->
-      <table width="100%" cellpadding="0" cellspacing="0" style="padding:0 36px;">
+      <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="padding:0 36px;">
         <tr><td>
 ${gridHtml}
         </td></tr>
@@ -342,21 +352,22 @@ ${gridHtml}
 
       <!-- CTA -->
       <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="padding:34px 36px 40px;text-align:center;">
+        <tr><td class="sm-px" style="padding:34px 36px 12px;text-align:center;">
           <div style="font-size:16px;font-weight:800;color:${TEXT_PRIMARY};margin-bottom:14px;">Se vad som trendar inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span></div>
           <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:${ACCENT};color:#ffffff;text-decoration:none;font-size:15px;font-weight:800;padding:16px 32px;border-radius:12px;letter-spacing:0.2px;box-shadow:0 4px 18px rgba(118,54,236,0.35);">Se dina trender &rarr;</a>
-          <div style="font-size:12px;color:${TEXT_MUTED};margin-top:14px;">N&auml;sta utskick kommer m&aring;ndag kl. 08:00</div>
         </td></tr>
       </table>
 
-    </td>
-  </tr>
+      <!-- Footer (inside the card) -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr><td class="sm-px" style="padding:0 36px 36px;text-align:center;font-size:11.5px;color:${TEXT_MUTED};line-height:1.7;">
+          <img src="${LOGO_URL}" width="160" height="89" alt="SoMe" style="display:block;width:160px;height:89px;margin:0 auto 18px;" />
+          <div style="font-size:12px;color:${TEXT_MUTED};margin-bottom:4px;">N&auml;sta utskick kommer m&aring;ndag kl. 08:00</div>
+          Du f&aring;r detta mejl varje vecka fr&aring;n SoMe.<br>
+          <a href="${escapeHtml(unsubscribeUrl)}" style="color:${TEXT_MUTED};text-decoration:underline;">Avsluta prenumerationen</a>
+        </td></tr>
+      </table>
 
-  <!-- Footer -->
-  <tr>
-    <td style="padding:22px 12px 0;text-align:center;font-size:11.5px;color:${TEXT_MUTED};line-height:1.7;">
-      Du f&aring;r detta mejl varje vecka fr&aring;n SoMe.<br>
-      <a href="${escapeHtml(unsubscribeUrl)}" style="color:${TEXT_MUTED};text-decoration:underline;">Avsluta prenumerationen</a>
     </td>
   </tr>
 
