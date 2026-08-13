@@ -19,7 +19,7 @@ export const sampleEmailRequest: GenerateEmailRequest = {
     },
     {
       platform: "instagram",
-      title: "Oredigerat vardagsinnehåll vinner",
+      title: "Oredigerat innehåll tar över",
       description: "Rått och äkta slår det polerade.",
       growthPercent: 128,
       sparkline: [6, 9, 7, 16, 13, 20, 23],
@@ -28,8 +28,8 @@ export const sampleEmailRequest: GenerateEmailRequest = {
     },
     {
       platform: "youtube",
-      title: "Tystnaden som håller kvar tittarna",
-      description: "Lugna vlogs håller tittarna kvar längre.",
+      title: "Lugna vlogs håller kvar tittare",
+      description: "Tittarna stannar kvar länge nu.",
       growthPercent: 97,
       sparkline: [8, 7, 12, 11, 17, 15, 22],
       thumbnailUrl:
@@ -37,8 +37,8 @@ export const sampleEmailRequest: GenerateEmailRequest = {
     },
     {
       platform: "tiktok",
-      title: "Greenscreen tar över flödet",
-      description: "Kreatörer bygger vidare på andras klipp.",
+      title: "Greenscreen sprider sig snabbt",
+      description: "Kreatörer bygger vidare på klipp.",
       growthPercent: 74,
       sparkline: [10, 12, 11, 17, 15, 19, 21],
       thumbnailUrl:
@@ -47,7 +47,7 @@ export const sampleEmailRequest: GenerateEmailRequest = {
     {
       platform: "instagram",
       title: "Bilder som stoppar scrollen",
-      description: "Sparandet skjuter i höjden.",
+      description: "Sparande skjuter i höjden snabbt.",
       growthPercent: 51,
       sparkline: [12, 11, 15, 14, 18, 17, 20],
       thumbnailUrl:
