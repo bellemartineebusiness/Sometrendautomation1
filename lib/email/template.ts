@@ -84,18 +84,29 @@ function rankBadge(rank: number, isFirst: boolean): string {
   const size = isFirst ? 26 : 22;
   const bg = isFirst ? FIRST_BG : RANK_BG;
   const color = isFirst ? FIRST_TEXT : RANK_TEXT;
-  return `<table cellpadding="0" cellspacing="0" style="width:${size}px;flex-shrink:0;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="background-color:${bg};border-radius:50%;font-size:${isFirst ? 13 : 11}px;font-weight:800;color:${color};">${rank}</td></tr></table>`;
+  return `<table cellpadding="0" cellspacing="0" style="width:${size}px;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="background-color:${bg};border-radius:50%;font-size:${isFirst ? 13 : 11}px;font-weight:800;color:${color};box-shadow:0 2px 6px rgba(0,0,0,0.25);">${rank}</td></tr></table>`;
 }
 
 function platformIconBadge(platform: string, size: number): string {
   const key = platform.toLowerCase();
   const glyph = PLATFORM_GLYPHS[key] ?? DEFAULT_GLYPH;
-  // Explicit width/style on the table itself (not just the td) — without it,
-  // a flex-column parent (like the photo card content overlay) stretches
-  // this table to the full container width instead of staying icon-sized.
-  return `<table cellpadding="0" cellspacing="0" style="width:${size}px;flex-shrink:0;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="${platformTileStyle(platform)}border-radius:${Math.round(size * 0.28)}px;">
+  return `<table cellpadding="0" cellspacing="0" style="width:${size}px;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="${platformTileStyle(platform)}border-radius:${Math.round(size * 0.28)}px;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
     <svg width="${Math.round(size * 0.58)}" height="${Math.round(size * 0.58)}" viewBox="${glyph.viewBox}" style="display:block;">${glyph.markup}</svg>
   </td></tr></table>`;
+}
+
+// CSS filter:blur() isn't reliably supported across mail clients (Outlook
+// drops it entirely, some Gmail app versions ignore it), so instead of
+// blurring in CSS we bake the blur into the image itself via images.weserv.nl
+// (a free public image proxy). The served bytes are already blurred, so
+// every client renders it identically — no CSS feature support required.
+function blurredThumbnailUrl(url: string, pixelWidth: number): string {
+  const proxied = new URL("https://images.weserv.nl/");
+  proxied.searchParams.set("url", url);
+  proxied.searchParams.set("w", String(pixelWidth * 2)); // 2x for retina
+  proxied.searchParams.set("fit", "cover");
+  proxied.searchParams.set("blur", "12");
+  return proxied.toString();
 }
 
 function growthColors() {
@@ -114,13 +125,12 @@ function growthSentence(percent: number): string {
   return `${formatGrowth(percent)} ${verb} senaste veckan`;
 }
 
-// Shared "photo card" shell: blurred backdrop, dark wash for contrast, all
-// copy sits in normal table flow, layered on top of a real HTML/CSS
-// background image via nested tables — no position:absolute, no flexbox.
-// Both of those silently drop the overlay in the Gmail app (and degrade
-// in Outlook), leaving a bare photo with none of the text visible. A
-// background-image `<td>` with the content in an ordinary nested table
-// renders correctly everywhere, including the Gmail app.
+// Shared "photo card" shell: copy sits in normal table flow, layered on top
+// of a real HTML/CSS background image via nested tables — no
+// position:absolute, no flexbox. Both of those silently drop the overlay in
+// the Gmail app (and degrade in Outlook), leaving a bare photo with none of
+// the text visible. A background-image `<td>` with the content in an
+// ordinary nested table renders correctly everywhere, including Gmail app.
 function renderPhotoCard(params: {
   trend: TrendItem;
   ctaUrl: string;
@@ -130,17 +140,17 @@ function renderPhotoCard(params: {
   content: string;
 }): string {
   const { trend, ctaUrl, height, radius, heightClass, content } = params;
-  const thumb = trend.thumbnailUrl;
+  const thumb = trend.thumbnailUrl ? blurredThumbnailUrl(trend.thumbnailUrl, 600) : undefined;
   const bgImageCss = thumb
     ? `background-image:url('${escapeHtml(thumb)}');background-size:cover;background-position:center;`
     : "";
   const bgAttr = thumb ? ` background="${escapeHtml(thumb)}"` : "";
 
-  return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;box-shadow:0 8px 24px rgba(21,11,46,0.22);border-radius:${radius}px;">
     <tr>
       <td class="${heightClass}"${bgAttr} bgcolor="#1c1033" height="${height}" style="${platformTileStyle(trend.platform)}${bgImageCss}background-color:#1c1033;border-radius:${radius}px;height:${height}px;">
         <a href="${escapeHtml(ctaUrl)}" style="display:block;text-decoration:none;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:rgba(10,6,20,0.55);border-radius:${radius}px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:rgba(10,6,20,0.56);border-radius:${radius}px;">
             <tr><td style="padding:16px;">
               ${content}
             </td></tr>
@@ -159,14 +169,17 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
   const spark = buildSparkline(trend.sparkline, 90, 34, 6, 5);
   const colors = growthColors();
 
-  const content = `
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr>
+  const heroInnerHeight = 420 - 32; // card height minus the 16px top+bottom padding
+
+  const topRow = `
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
             <td style="vertical-align:middle;">
               <div style="display:inline-block;background:rgba(255,255,255,0.16);color:#ffffff;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:20px;">Veckans st&ouml;rsta trend</div>
             </td>
             <td align="right" style="vertical-align:middle;">${rankBadge(1, true)}</td>
-          </tr></table>
+          </tr></table>`;
 
+  const bottomBlock = `
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;"><tr><td align="center">${platformIconBadge(trend.platform, 36)}</td></tr></table>
           <div style="font-size:23px;font-weight:800;color:#ffffff;letter-spacing:-0.4px;line-height:1.25;margin-bottom:6px;text-align:center;">${escapeHtml(trend.title)}</div>
           ${trend.leadIn ? `<div style="font-size:13.5px;font-style:italic;color:rgba(255,255,255,0.85);margin-bottom:8px;text-align:center;">${escapeHtml(trend.leadIn)}</div>` : ""}
@@ -186,6 +199,15 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
             </tr>
           </table>`;
 
+  // Top row pinned to the top, bottom block pinned to the bottom of the card
+  // (via plain table valign, not flexbox) — same "text hugs the bottom of
+  // the photo" look as before, just built out of ordinary table rows.
+  const content = `
+          <table width="100%" height="${heroInnerHeight}" class="sm-hero-inner" cellpadding="0" cellspacing="0">
+            <tr><td valign="top">${topRow}</td></tr>
+            <tr><td valign="bottom">${bottomBlock}</td></tr>
+          </table>`;
+
   return `
       <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="padding:22px 36px 0;">
         <tr><td>
@@ -196,15 +218,24 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
 
 function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string {
   const colors = growthColors();
+  const cardInnerHeight = 260 - 32;
 
-  const content = `
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;"><tr>
+  const topRow = `
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
             <td style="vertical-align:top;">${rankBadge(rank, false)}</td>
             <td align="right" style="vertical-align:top;">${platformIconBadge(trend.platform, 32)}</td>
-          </tr></table>
+          </tr></table>`;
+
+  const bottomBlock = `
                     <div style="font-size:14px;font-weight:800;color:#ffffff;line-height:1.3;margin-bottom:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(trend.title)}</div>
                     <div style="font-size:11.5px;color:rgba(255,255,255,0.85);line-height:1.5;margin-bottom:10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(trend.description)}</div>
                     <div style="font-size:13px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;text-align:center;">${formatGrowth(trend.growthPercent)}</div>`;
+
+  const content = `
+          <table width="100%" height="${cardInnerHeight}" class="sm-card-inner" cellpadding="0" cellspacing="0">
+            <tr><td valign="top">${topRow}</td></tr>
+            <tr><td valign="bottom">${bottomBlock}</td></tr>
+          </table>`;
 
   return renderPhotoCard({ trend, ctaUrl, height: 260, radius: 16, heightClass: "sm-card", content });
 }
@@ -290,6 +321,8 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
        the same size as the hero. They stay 2-per-row (not fully stacked). */
     .sm-hero { height: 480px !important; }
     .sm-card { height: 220px !important; }
+    .sm-hero-inner { height: 448px !important; }
+    .sm-card-inner { height: 188px !important; }
   }
 </style>
 </head>
