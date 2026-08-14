@@ -22,8 +22,6 @@ const GRADIENT_TEXT_STYLE =
   ACCENT +
   ";";
 
-const BLUR_PX = 7; // moderate blur — "lite mindre blurrad" per feedback
-
 function escapeHtml(input: string): string {
   return input
     .replace(/&/g, "&amp;")
@@ -100,18 +98,6 @@ function platformIconBadge(platform: string, size: number): string {
   </td></tr></table>`;
 }
 
-// The blurred photo background shared by the hero and grid cards: a real
-// thumbnail when we have one, otherwise a solid platform-colored fallback —
-// either way it's blurred and scaled up slightly so the blur never shows a
-// sharp/transparent edge at the card boundary.
-function renderBlurredBackdrop(trend: TrendItem, height: number, heightClass: string): string {
-  const common = `display:block;width:100%;height:${height}px;object-fit:cover;filter:blur(${BLUR_PX}px);-webkit-filter:blur(${BLUR_PX}px);transform:scale(1.12);`;
-  if (trend.thumbnailUrl) {
-    return `<img src="${escapeHtml(trend.thumbnailUrl)}" alt="" class="${heightClass}" style="${common}" />`;
-  }
-  return `<div class="${heightClass}" style="${platformTileStyle(trend.platform)}${common}"></div>`;
-}
-
 function growthColors() {
   // Lighter tint of the brand purple (not the raw ACCENT hex) for contrast
   // against the dark photo-card overlay the number and sparkline sit on.
@@ -129,31 +115,40 @@ function growthSentence(percent: number): string {
 }
 
 // Shared "photo card" shell: blurred backdrop, dark wash for contrast, all
-// copy layered on top via position:absolute. Renders fine in real browsers
-// and WebKit-based mail clients (Apple Mail); Outlook/Gmail app fall back to
-// stacked content without the overlay — degraded, not broken.
+// copy sits in normal table flow, layered on top of a real HTML/CSS
+// background image via nested tables — no position:absolute, no flexbox.
+// Both of those silently drop the overlay in the Gmail app (and degrade
+// in Outlook), leaving a bare photo with none of the text visible. A
+// background-image `<td>` with the content in an ordinary nested table
+// renders correctly everywhere, including the Gmail app.
 function renderPhotoCard(params: {
   trend: TrendItem;
   ctaUrl: string;
-  width: number | "100%";
   height: number;
   radius: number;
   heightClass: string;
   content: string;
 }): string {
-  const { trend, ctaUrl, width, height, radius, heightClass, content } = params;
-  const tableWidth = width === "100%" ? "100%" : width;
-  return `<table width="${tableWidth}" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td>
-    <a href="${escapeHtml(ctaUrl)}" style="display:block;text-decoration:none;">
-      <div class="${heightClass}" style="position:relative;width:100%;height:${height}px;border-radius:${radius}px;overflow:hidden;background-color:#1c1033;">
-        ${renderBlurredBackdrop(trend, height, heightClass)}
-        <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(10,6,20,0.56);"></div>
-        <div style="position:absolute;top:0;left:0;right:0;bottom:0;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;">
-          ${content}
-        </div>
-      </div>
-    </a>
-  </td></tr></table>`;
+  const { trend, ctaUrl, height, radius, heightClass, content } = params;
+  const thumb = trend.thumbnailUrl;
+  const bgImageCss = thumb
+    ? `background-image:url('${escapeHtml(thumb)}');background-size:cover;background-position:center;`
+    : "";
+  const bgAttr = thumb ? ` background="${escapeHtml(thumb)}"` : "";
+
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+    <tr>
+      <td class="${heightClass}"${bgAttr} bgcolor="#1c1033" height="${height}" style="${platformTileStyle(trend.platform)}${bgImageCss}background-color:#1c1033;border-radius:${radius}px;height:${height}px;">
+        <a href="${escapeHtml(ctaUrl)}" style="display:block;text-decoration:none;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:rgba(10,6,20,0.55);border-radius:${radius}px;">
+            <tr><td style="padding:16px;">
+              ${content}
+            </td></tr>
+          </table>
+        </a>
+      </td>
+    </tr>
+  </table>`;
 }
 
 function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
@@ -165,14 +160,12 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
   const colors = growthColors();
 
   const content = `
-          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;"><tr>
             <td style="vertical-align:middle;">
               <div style="display:inline-block;background:rgba(255,255,255,0.16);color:#ffffff;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:20px;">Veckans st&ouml;rsta trend</div>
             </td>
             <td align="right" style="vertical-align:middle;">${rankBadge(1, true)}</td>
           </tr></table>
-
-          <div style="flex:1;"></div>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;"><tr><td align="center">${platformIconBadge(trend.platform, 36)}</td></tr></table>
           <div style="font-size:23px;font-weight:800;color:#ffffff;letter-spacing:-0.4px;line-height:1.25;margin-bottom:6px;text-align:center;">${escapeHtml(trend.title)}</div>
@@ -181,10 +174,10 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
 
           <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
             <tr>
-              <td style="vertical-align:bottom;word-wrap:break-word;text-align:center;">
+              <td style="vertical-align:middle;word-wrap:break-word;text-align:center;">
                 <span style="font-size:20px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;">${growthSentence(trend.growthPercent)}</span>
               </td>
-              <td width="90" style="vertical-align:bottom;">
+              <td width="90" style="vertical-align:middle;">
                 <svg width="90" height="34" viewBox="0 0 90 34" style="display:block;margin-left:auto;">
                   <polyline points="${spark.polyline}" fill="none" stroke="${colors.stroke}" stroke-width="3"/>
                   <circle cx="${spark.last.x}" cy="${spark.last.y}" r="5" fill="${colors.stroke}"/>
@@ -196,7 +189,7 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
   return `
       <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="padding:22px 36px 0;">
         <tr><td>
-          ${renderPhotoCard({ trend, ctaUrl, width: "100%", height: 420, radius: 20, heightClass: "sm-hero", content })}
+          ${renderPhotoCard({ trend, ctaUrl, height: 420, radius: 20, heightClass: "sm-hero", content })}
         </td></tr>
       </table>`;
 }
@@ -205,16 +198,15 @@ function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string
   const colors = growthColors();
 
   const content = `
-          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;"><tr>
             <td style="vertical-align:top;">${rankBadge(rank, false)}</td>
             <td align="right" style="vertical-align:top;">${platformIconBadge(trend.platform, 32)}</td>
           </tr></table>
-                    <div style="flex:1;"></div>
                     <div style="font-size:14px;font-weight:800;color:#ffffff;line-height:1.3;margin-bottom:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(trend.title)}</div>
                     <div style="font-size:11.5px;color:rgba(255,255,255,0.85);line-height:1.5;margin-bottom:10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(trend.description)}</div>
                     <div style="font-size:13px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;text-align:center;">${formatGrowth(trend.growthPercent)}</div>`;
 
-  return renderPhotoCard({ trend, ctaUrl, width: "100%", height: 260, radius: 16, heightClass: "sm-card", content });
+  return renderPhotoCard({ trend, ctaUrl, height: 260, radius: 16, heightClass: "sm-card", content });
 }
 
 function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number): string {
