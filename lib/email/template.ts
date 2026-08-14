@@ -328,9 +328,21 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light only">
 <title>Veckans trender - SoMe</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&amp;display=swap" rel="stylesheet">
 <style>
+  /* Force light-mode colors even when Gmail/Apple Mail apply automatic
+     dark-mode recoloring — without this, backgrounds and text get
+     inverted/adjusted in ways that can make buttons and text unreadable. */
+  :root { color-scheme: light only; supported-color-schemes: light only; }
+  [data-ogsc] .force-light-bg { background-color: inherit !important; }
+  @media (prefers-color-scheme: dark) {
+    body, .email-bg { background: #f3effa !important; }
+    .card-bg { background: #ffffff !important; color: #150B2E !important; }
+    .cta-btn { background: #7636ec !important; color: #ffffff !important; }
+  }
   @media screen and (max-width: 480px) {
     .sm-px { padding-left: 20px !important; padding-right: 20px !important; }
     /* Keep the desktop hierarchy on mobile: the featured trend stays big
@@ -343,15 +355,15 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
   }
 </style>
 </head>
-<body style="margin:0;padding:0;background:${PAGE_BG};font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<body class="email-bg" style="margin:0;padding:0;background:${PAGE_BG};font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(previewText)}</span>
-<table width="100%" cellpadding="0" cellspacing="0" style="background:${PAGE_BG};padding:36px 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" class="email-bg" style="background:${PAGE_BG};padding:36px 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <tr><td align="center">
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
   <!-- Header band: real SoMe logo file -->
   <tr>
-    <td class="sm-px" style="background-color:${CARD_BG};border-radius:20px 20px 0 0;padding:22px 36px;border-bottom:1px solid ${BORDER_SOFT};">
+    <td class="sm-px card-bg" bgcolor="${CARD_BG}" style="background-color:${CARD_BG};border-radius:20px 20px 0 0;padding:22px 36px;border-bottom:1px solid ${BORDER_SOFT};">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="vertical-align:middle;">
@@ -365,7 +377,7 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 
   <!-- Card -->
   <tr>
-    <td style="background:${CARD_BG};border-radius:0 0 20px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.05),0 14px 36px rgba(21,11,46,0.12);">
+    <td class="card-bg" bgcolor="${CARD_BG}" style="background:${CARD_BG};border-radius:0 0 20px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.05),0 14px 36px rgba(21,11,46,0.12);">
 
       <!-- Intro -->
       <table width="100%" cellpadding="0" cellspacing="0">
@@ -396,7 +408,7 @@ ${gridHtml}
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr><td class="sm-px" style="padding:34px 36px 12px;text-align:center;">
           <div style="font-size:16px;font-weight:800;color:${TEXT_PRIMARY};margin-bottom:14px;">Se vad som trendar inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span></div>
-          <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:${ACCENT};color:#ffffff;text-decoration:none;font-size:15px;font-weight:800;padding:16px 32px;border-radius:12px;letter-spacing:0.2px;box-shadow:0 4px 18px rgba(118,54,236,0.35);">Se dina trender &rarr;</a>
+          <a href="${escapeHtml(ctaUrl)}" class="cta-btn" style="display:inline-block;background:${ACCENT};color:#ffffff;text-decoration:none;font-size:15px;font-weight:800;padding:16px 32px;border-radius:12px;letter-spacing:0.2px;box-shadow:0 4px 18px rgba(118,54,236,0.35);">Se dina trender &rarr;</a>
         </td></tr>
       </table>
 
