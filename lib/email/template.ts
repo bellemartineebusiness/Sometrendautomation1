@@ -210,8 +210,8 @@ function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string
             <td align="right" style="vertical-align:top;">${platformIconBadge(trend.platform, 32)}</td>
           </tr></table>
                     <div style="flex:1;"></div>
-                    <div style="font-size:14px;font-weight:800;color:#ffffff;line-height:1.3;margin-bottom:6px;text-align:center;height:36px;overflow:hidden;">${escapeHtml(trend.title)}</div>
-                    <div style="font-size:11.5px;color:rgba(255,255,255,0.85);line-height:1.5;margin-bottom:10px;text-align:center;height:34px;overflow:hidden;">${escapeHtml(trend.description)}</div>
+                    <div style="font-size:14px;font-weight:800;color:#ffffff;line-height:1.3;margin-bottom:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(trend.title)}</div>
+                    <div style="font-size:11.5px;color:rgba(255,255,255,0.85);line-height:1.5;margin-bottom:10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(trend.description)}</div>
                     <div style="font-size:13px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;text-align:center;">${formatGrowth(trend.growthPercent)}</div>`;
 
   return renderPhotoCard({ trend, ctaUrl, width: "100%", height: 260, radius: 16, heightClass: "sm-card", content });
