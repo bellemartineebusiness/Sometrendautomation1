@@ -1,4 +1,3 @@
-import { buildSparkline } from "./sparkline";
 import type { GenerateEmailRequest, GenerateEmailResponse, TrendItem } from "./types";
 
 const DEFAULT_FROM_NAME = "SoMe";
@@ -44,36 +43,18 @@ function platformTileStyle(platform: string): string {
   return PLATFORM_TILE_STYLES[platform.toLowerCase()] ?? DEFAULT_TILE_STYLE;
 }
 
-// Simple, recognizable glyphs (not traced brand artwork) for each platform's
-// app-icon badge: a musical note for TikTok, a camera for Instagram, a play
-// triangle for YouTube. Each has its own viewBox cropped tight to the glyph's
-// actual bounding box (computed by hand) so it renders centered and fills
-// the badge, instead of sitting off-center in a generic 24x24 box.
-const PLATFORM_GLYPHS: Record<string, { viewBox: string; markup: string }> = {
-  tiktok: {
-    // Hollow (ring) note head + stem + curled flag, duplicated in TikTok's
-    // signature cyan/magenta duotone offset.
-    viewBox: "2.3 3.2 18 18",
-    markup:
-      '<g transform="translate(-1,0.9)"><circle cx="9" cy="16.5" r="3" fill="none" stroke="#25F4EE" stroke-width="1.8"/><path d="M12 5v11.5" stroke="#25F4EE" stroke-width="2.1" stroke-linecap="round"/><path d="M12 5c0 2.6 2 4.7 4.6 4.9" stroke="#25F4EE" stroke-width="2.1" stroke-linecap="round" fill="none"/></g>' +
-      '<g transform="translate(1,-0.9)"><circle cx="9" cy="16.5" r="3" fill="none" stroke="#FE2C55" stroke-width="1.8"/><path d="M12 5v11.5" stroke="#FE2C55" stroke-width="2.1" stroke-linecap="round"/><path d="M12 5c0 2.6 2 4.7 4.6 4.9" stroke="#FE2C55" stroke-width="2.1" stroke-linecap="round" fill="none"/></g>' +
-      '<circle cx="9" cy="16.5" r="3" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M12 5v11.5" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/><path d="M12 5c0 2.6 2 4.7 4.6 4.9" stroke="#fff" stroke-width="2.1" stroke-linecap="round" fill="none"/>',
-  },
-  instagram: {
-    viewBox: "0 0 24 24",
-    markup:
-      '<rect x="3.5" y="3.5" width="17" height="17" rx="5.5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="#fff" stroke-width="2"/><circle cx="17" cy="7" r="1.2" fill="#fff"/>',
-  },
-  youtube: {
-    // A right-pointing triangle's centroid sits left of its bounding-box
-    // center (the flat edge carries more visual "weight" than the tip), so
-    // geometric centering in the viewBox reads as off-center to the eye.
-    // Shifted right so the centroid lines up with the viewBox's center.
-    viewBox: "5.75 4.5 15 15",
-    markup: '<polygon points="10.75,7.5 18.25,12 10.75,16.5" fill="#fff"/>',
-  },
+// Platform glyphs as real PNG files (not inline <svg>) — Gmail strips inline
+// SVG markup entirely out of email HTML during its sanitization pass, so
+// icons rendered as <svg> silently vanish in Gmail (web and app) even
+// though they render fine in a plain browser. PNGs referenced by URL are
+// universally supported instead. Same reasoning as LOGO_URL: must be an
+// absolute URL, a mail client can't resolve a relative path.
+const ICON_BASE_URL = "https://sometrendautomation1-6anu.vercel.app/icons";
+const PLATFORM_ICON_URLS: Record<string, string> = {
+  tiktok: `${ICON_BASE_URL}/tiktok.png`,
+  instagram: `${ICON_BASE_URL}/instagram.png`,
+  youtube: `${ICON_BASE_URL}/youtube.png`,
 };
-const DEFAULT_GLYPH = { viewBox: "0 0 24 24", markup: '<circle cx="12" cy="12" r="4" fill="#fff"/>' };
 
 const FIRST_BG = ACCENT;
 const FIRST_TEXT = "#ffffff";
@@ -89,9 +70,13 @@ function rankBadge(rank: number, isFirst: boolean): string {
 
 function platformIconBadge(platform: string, size: number): string {
   const key = platform.toLowerCase();
-  const glyph = PLATFORM_GLYPHS[key] ?? DEFAULT_GLYPH;
+  const iconUrl = PLATFORM_ICON_URLS[key];
+  const glyphSize = Math.round(size * 0.58);
+  const glyph = iconUrl
+    ? `<img src="${iconUrl}" width="${glyphSize}" height="${glyphSize}" alt="" style="display:block;width:${glyphSize}px;height:${glyphSize}px;" />`
+    : `<div style="width:${Math.round(glyphSize * 0.5)}px;height:${Math.round(glyphSize * 0.5)}px;border-radius:50%;background:#fff;"></div>`;
   return `<table cellpadding="0" cellspacing="0" style="width:${size}px;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="${platformTileStyle(platform)}border-radius:${Math.round(size * 0.28)}px;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
-    <svg width="${Math.round(size * 0.58)}" height="${Math.round(size * 0.58)}" viewBox="${glyph.viewBox}" style="display:block;">${glyph.markup}</svg>
+    ${glyph}
   </td></tr></table>`;
 }
 
@@ -113,6 +98,45 @@ function growthColors() {
   // Lighter tint of the brand purple (not the raw ACCENT hex) for contrast
   // against the dark photo-card overlay the number and sparkline sit on.
   return { text: "#c4b5fd", stroke: "#c4b5fd" };
+}
+
+// The sparkline was inline <svg> like the platform icons — same problem,
+// same fix: render it server-side (via QuickChart's free chart-image API)
+// and use a plain <img>, since Gmail strips <svg> out of email HTML.
+function sparklineImageUrl(values: number[], color: string, width: number, height: number): string {
+  const pointRadius = values.map((_, i) => (i === values.length - 1 ? 5 : 0));
+  const config = {
+    type: "line",
+    data: {
+      labels: values.map((_, i) => i),
+      datasets: [
+        {
+          data: values,
+          borderColor: color,
+          borderWidth: 3,
+          fill: false,
+          tension: 0.3,
+          pointRadius,
+          pointBackgroundColor: color,
+          pointBorderWidth: 0,
+        },
+      ],
+    },
+    options: {
+      responsive: false,
+      legend: { display: false },
+      scales: { xAxes: [{ display: false }], yAxes: [{ display: false }] },
+      layout: { padding: 2 },
+    },
+  };
+  const params = new URLSearchParams({
+    w: String(width),
+    h: String(height),
+    devicePixelRatio: "2",
+    bkg: "transparent",
+    c: JSON.stringify(config),
+  });
+  return `https://quickchart.io/chart?${params.toString()}`;
 }
 
 function formatGrowth(percent: number): string {
@@ -162,12 +186,8 @@ function renderPhotoCard(params: {
 }
 
 function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
-  // viewBox matches the SVG's actual rendered size (90x34) exactly, so
-  // there's no non-uniform stretch distorting the endpoint circle into an
-  // ellipse; padding (6) is bigger than the marker radius (5) so it isn't
-  // clipped top/bottom either.
-  const spark = buildSparkline(trend.sparkline, 90, 34, 6, 5);
   const colors = growthColors();
+  const sparkUrl = sparklineImageUrl(trend.sparkline, colors.stroke, 90, 34);
 
   const heroInnerHeight = 420 - 32; // card height minus the 16px top+bottom padding
 
@@ -191,10 +211,7 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
                 <span style="font-size:20px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;">${growthSentence(trend.growthPercent)}</span>
               </td>
               <td width="90" style="vertical-align:middle;">
-                <svg width="90" height="34" viewBox="0 0 90 34" style="display:block;margin-left:auto;">
-                  <polyline points="${spark.polyline}" fill="none" stroke="${colors.stroke}" stroke-width="3"/>
-                  <circle cx="${spark.last.x}" cy="${spark.last.y}" r="5" fill="${colors.stroke}"/>
-                </svg>
+                <img src="${sparkUrl}" width="90" height="34" alt="" style="display:block;margin-left:auto;width:90px;height:34px;" />
               </td>
             </tr>
           </table>`;
