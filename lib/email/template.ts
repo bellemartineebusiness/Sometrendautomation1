@@ -393,6 +393,21 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
     .sm-card-inner { height: 228px !important; }
   }
 </style>
+<!--[if mso]>
+<style type="text/css">
+  /* Outlook desktop always renders at a fixed, desktop-like width and
+     doesn't reliably support @media queries, so the mobile-first base
+     values above would otherwise stick there too. mso conditional
+     comments (unlike @media) are reliably parsed by Outlook and ignored
+     as a plain HTML comment by every other client, so this is a safe,
+     Outlook-only way to restore the roomier desktop spacing there. */
+  .sm-px { padding-left: 36px !important; padding-right: 36px !important; }
+  .sm-hero { height: 420px !important; }
+  .sm-card { height: 260px !important; }
+  .sm-hero-inner { height: 388px !important; }
+  .sm-card-inner { height: 228px !important; }
+</style>
+<![endif]-->
 </head>
 <body class="email-bg" style="margin:0;padding:0;background:${PAGE_BG};font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(previewText)}</span>
