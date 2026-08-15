@@ -194,7 +194,7 @@ function renderPhotoCard(params: {
     ? `<v:fill type="frame" src="${escapeHtml(thumb)}" color="#1c1033" />`
     : `<v:fill color="${platformTileFallbackColor(trend.platform)}" />`;
 
-  return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;box-shadow:0 8px 24px rgba(21,11,46,0.22);border-radius:${radius}px;">
+  return `<table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;border-collapse:separate;box-shadow:0 8px 24px rgba(21,11,46,0.22);border-radius:${radius}px;">
     <tr>
       <td class="${heightClass}"${bgAttr} bgcolor="#1c1033" height="${height}" style="${platformTileStyle(trend.platform)}${bgImageCss}background-color:#1c1033;border-radius:${radius}px;height:${height}px;">
         <!--[if mso]>
@@ -203,7 +203,7 @@ function renderPhotoCard(params: {
         <v:textbox inset="0,0,0,0">
         <![endif]-->
         <a href="${escapeHtml(ctaUrl)}" style="display:block;text-decoration:none;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#150b28;background-color:rgba(10,6,20,0.56);border-radius:${radius}px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;background-color:#150b28;background-color:rgba(10,6,20,0.56);border-radius:${radius}px;">
             <tr><td style="padding:16px;">
               ${content}
             </td></tr>
@@ -255,7 +255,7 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
   // (via plain table valign, not flexbox) — same "text hugs the bottom of
   // the photo" look as before, just built out of ordinary table rows.
   const content = `
-          <table width="100%" height="${heroInnerHeight}" class="sm-hero-inner" cellpadding="0" cellspacing="0">
+          <table width="100%" height="${heroInnerHeight}" class="sm-hero-inner" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
             <tr><td valign="top">${topRow}</td></tr>
             <tr><td valign="bottom">${bottomBlock}</td></tr>
           </table>`;
@@ -285,7 +285,7 @@ function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string
                     <div style="font-size:13px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;text-align:center;">${formatGrowth(trend.growthPercent)}</div>`;
 
   const content = `
-          <table width="100%" height="${cardInnerHeight}" class="sm-card-inner" cellpadding="0" cellspacing="0">
+          <table width="100%" height="${cardInnerHeight}" class="sm-card-inner" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
             <tr><td valign="top">${topRow}</td></tr>
             <tr><td valign="bottom">${bottomBlock}</td></tr>
           </table>`;
@@ -300,15 +300,32 @@ function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number)
     const left = cards[i];
     const right = cards[i + 1];
     rows.push(`
-          <table width="100%" cellpadding="0" cellspacing="0"${i > 0 ? ' style="margin-top:14px;"' : ""}>
+          <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;${i > 0 ? "margin-top:14px;" : ""}">
             <tr>
               <!-- Gutter as padding on the card cells themselves, not a
                    separate empty spacer cell — an empty cell (even with a
                    fixed pixel width) rendered inconsistently between rows
                    in the Gmail app, sometimes collapsing to 0. Padding on
                    a cell that already holds content is far more reliable. -->
-              <td width="50%" style="vertical-align:top;padding-right:7px;">${left}</td>
-              <td width="50%" style="vertical-align:top;padding-left:7px;">${right ?? ""}</td>
+              <!-- Padding lives on an inner 100%-wide table, not on the
+                   50%-width outer <td> itself — table cells add padding on
+                   top of their specified width (no border-box), so padding
+                   directly on a width="50%" cell made the row overflow its
+                   container by 2x the padding, causing a sliver of
+                   horizontal overflow at the edge in the Gmail app.
+                   table-layout:fixed on every table in this chain is what
+                   actually makes any of this hold: without it, the
+                   white-space:nowrap title/description inside each card
+                   reports its full unwrapped text width as the table's
+                   required content width, and every ancestor table quietly
+                   grows to fit it instead of respecting the 50% column —
+                   the real cause of the page-wide horizontal overflow. -->
+              <td width="50%" style="vertical-align:top;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;"><tr><td style="padding-right:7px;">${left}</td></tr></table>
+              </td>
+              <td width="50%" style="vertical-align:top;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;"><tr><td style="padding-left:7px;">${right ?? ""}</td></tr></table>
+              </td>
             </tr>
           </table>`);
   }
@@ -415,9 +432,9 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 </head>
 <body class="email-bg" style="margin:0;padding:0;background:${PAGE_BG};font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(previewText)}</span>
-<table width="100%" cellpadding="0" cellspacing="0" class="email-bg" style="background:${PAGE_BG};padding:36px 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" class="email-bg" style="width:100%;box-sizing:border-box;background:${PAGE_BG};padding:36px 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+<table cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
   <!-- Header band: real SoMe logo file -->
   <tr>
