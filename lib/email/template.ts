@@ -222,7 +222,9 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
   const colors = growthColors();
   const sparkUrl = sparklineImageUrl(trend.sparkline, colors.stroke, 90, 34);
 
-  const heroInnerHeight = 420 - 32; // card height minus the 16px top+bottom padding
+  // Mobile-first base (480px, enhanced to 420px on wider screens by the
+  // .sm-hero media query) minus the 16px top+bottom padding.
+  const heroInnerHeight = 480 - 32;
 
   const topRow = `
           <table width="100%" cellpadding="0" cellspacing="0"><tr>
@@ -259,16 +261,17 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
           </table>`;
 
   return `
-      <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="padding:22px 36px 0;">
+      <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="padding:22px 20px 0;">
         <tr><td>
-          ${renderPhotoCard({ trend, ctaUrl, height: 420, widthPx: 528, radius: 20, heightClass: "sm-hero", content })}
+          ${renderPhotoCard({ trend, ctaUrl, height: 480, widthPx: 528, radius: 20, heightClass: "sm-hero", content })}
         </td></tr>
       </table>`;
 }
 
 function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string {
   const colors = growthColors();
-  const cardInnerHeight = 260 - 32;
+  // Mobile-first base (220px, enhanced to 260px on wider screens).
+  const cardInnerHeight = 220 - 32;
 
   const topRow = `
           <table width="100%" cellpadding="0" cellspacing="0"><tr>
@@ -287,7 +290,7 @@ function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string
             <tr><td valign="bottom">${bottomBlock}</td></tr>
           </table>`;
 
-  return renderPhotoCard({ trend, ctaUrl, height: 260, widthPx: 253, radius: 16, heightClass: "sm-card", content });
+  return renderPhotoCard({ trend, ctaUrl, height: 220, widthPx: 253, radius: 16, heightClass: "sm-card", content });
 }
 
 function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number): string {
@@ -376,15 +379,18 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
     .card-bg { background: #ffffff !important; color: #150B2E !important; }
     .cta-btn { background: #7636ec !important; color: #ffffff !important; }
   }
-  @media screen and (max-width: 480px) {
-    .sm-px { padding-left: 20px !important; padding-right: 20px !important; }
-    /* Keep the desktop hierarchy on mobile: the featured trend stays big
-       and portrait (~9:16-ish), the other 4 stay clearly smaller — not
-       the same size as the hero. They stay 2-per-row (not fully stacked). */
-    .sm-hero { height: 480px !important; }
-    .sm-card { height: 220px !important; }
-    .sm-hero-inner { height: 448px !important; }
-    .sm-card-inner { height: 188px !important; }
+  /* Mobile-first: the base inline values below (20px padding, shorter
+     cards) are the ones every client sees, including Gmail iOS — which is
+     known to strip <style> blocks entirely, unlike Gmail Android/web. This
+     query only ENHANCES to roomier desktop spacing on wider screens, so a
+     client that ignores <style> falls back to the safe mobile layout
+     instead of an unadapted desktop one that could overflow/misalign. */
+  @media screen and (min-width: 481px) {
+    .sm-px { padding-left: 36px !important; padding-right: 36px !important; }
+    .sm-hero { height: 420px !important; }
+    .sm-card { height: 260px !important; }
+    .sm-hero-inner { height: 388px !important; }
+    .sm-card-inner { height: 228px !important; }
   }
 </style>
 </head>
@@ -396,7 +402,7 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 
   <!-- Header band: real SoMe logo file -->
   <tr>
-    <td class="sm-px card-bg" bgcolor="${CARD_BG}" style="background-color:${CARD_BG};border-radius:20px 20px 0 0;padding:22px 36px;border-bottom:1px solid ${BORDER_SOFT};">
+    <td class="sm-px card-bg" bgcolor="${CARD_BG}" style="background-color:${CARD_BG};border-radius:20px 20px 0 0;padding:22px 20px;border-bottom:1px solid ${BORDER_SOFT};">
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="vertical-align:middle;">
@@ -414,7 +420,7 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 
       <!-- Intro -->
       <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td class="sm-px" style="padding:38px 36px 8px;text-align:center;">
+        <tr><td class="sm-px" style="padding:38px 20px 8px;text-align:center;">
           <div style="font-size:26px;font-weight:800;color:${TEXT_PRIMARY};letter-spacing:-0.5px;line-height:1.3;">Veckans trender</div>
           <div style="font-size:15px;font-weight:500;color:${TEXT_MUTED};line-height:1.6;margin-top:10px;">Hej ${escapeHtml(data.recipientName)}, vi p&aring; SoMe har plockat ut veckans hetaste trender till dig inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span>.</div>
         </td></tr>
@@ -425,13 +431,13 @@ ${renderFeaturedTrend(featured, ctaUrl)}
 
       <!-- Divider label -->
       <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td class="sm-px" style="padding:30px 36px 12px;">
+        <tr><td class="sm-px" style="padding:30px 20px 12px;">
           <div style="font-size:11px;font-weight:800;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:1.2px;text-align:center;border-bottom:1px solid ${BORDER_SOFT};padding-bottom:12px;">Fler trender att h&aring;lla koll p&aring;</div>
         </td></tr>
       </table>
 
       <!-- Trend grid -->
-      <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="padding:0 36px;">
+      <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="padding:0 20px;">
         <tr><td>
 ${gridHtml}
         </td></tr>
@@ -439,7 +445,7 @@ ${gridHtml}
 
       <!-- CTA -->
       <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td class="sm-px" style="padding:34px 36px 12px;text-align:center;">
+        <tr><td class="sm-px" style="padding:34px 20px 12px;text-align:center;">
           <div style="font-size:16px;font-weight:800;color:${TEXT_PRIMARY};margin-bottom:14px;">Se vad som trendar inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span></div>
           <!-- Bulletproof button: padding lives on the <td>, not the <a>,
                since Outlook desktop often ignores padding on anchor tags
@@ -466,7 +472,7 @@ ${gridHtml}
 
       <!-- Footer (inside the card) -->
       <table width="100%" cellpadding="0" cellspacing="0">
-        <tr><td class="sm-px" style="padding:0 36px 36px;text-align:center;font-size:11.5px;color:${TEXT_MUTED};line-height:1.7;">
+        <tr><td class="sm-px" style="padding:0 20px 36px;text-align:center;font-size:11.5px;color:${TEXT_MUTED};line-height:1.7;">
           <img src="${LOGO_URL}" width="160" height="89" alt="SoMe" style="display:block;width:160px;height:89px;max-width:100%;margin:0 auto 18px;" />
           <div style="font-size:12px;color:${TEXT_MUTED};margin-bottom:4px;">N&auml;sta utskick kommer m&aring;ndag kl. 08:00</div>
           Du f&aring;r detta mejl varje vecka fr&aring;n SoMe.<br>
