@@ -80,7 +80,7 @@ function rankBadge(rank: number, isFirst: boolean): string {
   // declaration since it comes later in the same style attribute.
   const bg = isFirst ? `background-color:${FIRST_BG};` : `background-color:#f3f0fb;background-color:${RANK_BG};`;
   const color = isFirst ? FIRST_TEXT : RANK_TEXT;
-  return `<table cellpadding="0" cellspacing="0" style="width:${size}px;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="${bg}border-radius:50%;font-size:${isFirst ? 13 : 11}px;font-weight:800;color:${color};box-shadow:0 2px 6px rgba(0,0,0,0.25);">${rank}</td></tr></table>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="width:${size}px;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="${bg}border-radius:50%;font-size:${isFirst ? 13 : 11}px;font-weight:800;color:${color};box-shadow:0 2px 6px rgba(0,0,0,0.25);">${rank}</td></tr></table>`;
 }
 
 function platformIconBadge(platform: string, size: number): string {
@@ -91,7 +91,7 @@ function platformIconBadge(platform: string, size: number): string {
   const glyph = iconUrl
     ? `<img src="${iconUrl}" width="${glyphSize}" height="${glyphSize}" alt="${iconLabel}" style="display:block;width:${glyphSize}px;height:${glyphSize}px;max-width:100%;" />`
     : `<div style="width:${Math.round(glyphSize * 0.5)}px;height:${Math.round(glyphSize * 0.5)}px;border-radius:50%;background:#fff;"></div>`;
-  return `<table cellpadding="0" cellspacing="0" style="width:${size}px;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="${platformTileStyle(platform)}border-radius:${Math.round(size * 0.28)}px;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="width:${size}px;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="${platformTileStyle(platform)}border-radius:${Math.round(size * 0.28)}px;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
     ${glyph}
   </td></tr></table>`;
 }
@@ -194,7 +194,7 @@ function renderPhotoCard(params: {
     ? `<v:fill type="frame" src="${escapeHtml(thumb)}" color="#1c1033" />`
     : `<v:fill color="${platformTileFallbackColor(trend.platform)}" />`;
 
-  return `<table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;border-collapse:separate;box-shadow:0 8px 24px rgba(21,11,46,0.22);border-radius:${radius}px;">
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;border-collapse:separate;mso-table-lspace:0pt;mso-table-rspace:0pt;box-shadow:0 8px 24px rgba(21,11,46,0.22);border-radius:${radius}px;">
     <tr>
       <td class="${heightClass}"${bgAttr} bgcolor="#1c1033" height="${height}" style="${platformTileStyle(trend.platform)}${bgImageCss}background-color:#1c1033;border-radius:${radius}px;height:${height}px;">
         <!--[if mso]>
@@ -203,7 +203,7 @@ function renderPhotoCard(params: {
         <v:textbox inset="0,0,0,0">
         <![endif]-->
         <a href="${escapeHtml(ctaUrl)}" style="display:block;text-decoration:none;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;background-color:#150b28;background-color:rgba(10,6,20,0.56);border-radius:${radius}px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;background-color:#150b28;background-color:rgba(10,6,20,0.56);border-radius:${radius}px;">
             <tr><td style="padding:16px;">
               ${content}
             </td></tr>
@@ -227,7 +227,7 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
   const heroInnerHeight = 480 - 32;
 
   const topRow = `
-          <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;"><tr>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;"><tr>
             <td style="vertical-align:middle;">
               <div style="display:inline-block;background-color:#3a2f52;background-color:rgba(255,255,255,0.16);color:#ffffff;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:20px;">Veckans st&ouml;rsta trend</div>
             </td>
@@ -235,12 +235,12 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
           </tr></table>`;
 
   const bottomBlock = `
-          <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;margin-bottom:10px;"><tr><td align="center">${platformIconBadge(trend.platform, 36)}</td></tr></table>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;margin-bottom:10px;"><tr><td align="center">${platformIconBadge(trend.platform, 36)}</td></tr></table>
           <div style="font-size:23px;font-weight:800;color:#ffffff;letter-spacing:-0.4px;line-height:1.25;margin-bottom:6px;text-align:center;">${escapeHtml(trend.title)}</div>
           ${trend.leadIn ? `<div style="font-size:13.5px;font-style:italic;color:#f1edfb;color:rgba(255,255,255,0.85);margin-bottom:8px;text-align:center;">${escapeHtml(trend.leadIn)}</div>` : ""}
           <div style="font-size:13.5px;color:#f8f7fd;color:rgba(255,255,255,0.92);line-height:1.6;margin-bottom:18px;text-align:center;">${escapeHtml(trend.description)}</div>
 
-          <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
             <tr>
               <td style="vertical-align:middle;word-wrap:break-word;text-align:center;">
                 <span style="font-size:20px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;">${growthSentence(trend.growthPercent)}</span>
@@ -255,13 +255,13 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
   // (via plain table valign, not flexbox) — same "text hugs the bottom of
   // the photo" look as before, just built out of ordinary table rows.
   const content = `
-          <table width="100%" height="${heroInnerHeight}" class="sm-hero-inner" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
+          <table role="presentation" width="100%" height="${heroInnerHeight}" class="sm-hero-inner" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
             <tr><td valign="top">${topRow}</td></tr>
             <tr><td valign="bottom">${bottomBlock}</td></tr>
           </table>`;
 
   return `
-      <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="table-layout:fixed;padding:22px 20px 0;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="table-layout:fixed;padding:22px 20px 0;">
         <tr><td>
           ${renderPhotoCard({ trend, ctaUrl, height: 480, widthPx: 528, radius: 20, heightClass: "sm-hero", content })}
         </td></tr>
@@ -274,7 +274,7 @@ function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string
   const cardInnerHeight = 220 - 32;
 
   const topRow = `
-          <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;"><tr>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;"><tr>
             <td style="vertical-align:top;">${rankBadge(rank, false)}</td>
             <td align="right" width="32" style="vertical-align:top;">${platformIconBadge(trend.platform, 32)}</td>
           </tr></table>`;
@@ -285,7 +285,7 @@ function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string
                     <div style="font-size:13px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;text-align:center;">${formatGrowth(trend.growthPercent)}</div>`;
 
   const content = `
-          <table width="100%" height="${cardInnerHeight}" class="sm-card-inner" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
+          <table role="presentation" width="100%" height="${cardInnerHeight}" class="sm-card-inner" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
             <tr><td valign="top">${topRow}</td></tr>
             <tr><td valign="bottom">${bottomBlock}</td></tr>
           </table>`;
@@ -300,7 +300,7 @@ function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number)
     const left = cards[i];
     const right = cards[i + 1];
     rows.push(`
-          <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;${i > 0 ? "margin-top:14px;" : ""}">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;${i > 0 ? "margin-top:14px;" : ""}">
             <tr>
               <!-- Gutter as padding on the card cells themselves, not a
                    separate empty spacer cell — an empty cell (even with a
@@ -321,10 +321,10 @@ function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number)
                    grows to fit it instead of respecting the 50% column —
                    the real cause of the page-wide horizontal overflow. -->
               <td width="50%" style="vertical-align:top;">
-                <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;"><tr><td style="padding-right:7px;">${left}</td></tr></table>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;"><tr><td style="padding-right:7px;">${left}</td></tr></table>
               </td>
               <td width="50%" style="vertical-align:top;">
-                <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;"><tr><td style="padding-left:7px;">${right ?? ""}</td></tr></table>
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;"><tr><td style="padding-left:7px;">${right ?? ""}</td></tr></table>
               </td>
             </tr>
           </table>`);
@@ -432,14 +432,24 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 </head>
 <body class="email-bg" style="margin:0;padding:0;background:${PAGE_BG};font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${escapeHtml(previewText)}</span>
-<table width="100%" cellpadding="0" cellspacing="0" class="email-bg" style="table-layout:fixed;width:100%;box-sizing:border-box;background:${PAGE_BG};padding:36px 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="email-bg" style="table-layout:fixed;width:100%;box-sizing:border-box;background:${PAGE_BG};padding:36px 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;mso-table-lspace:0pt;mso-table-rspace:0pt;">
 <tr><td align="center">
-<table cellpadding="0" cellspacing="0" style="table-layout:fixed;max-width:600px;width:100%;">
+<!-- Outlook desktop doesn't support max-width at all — it only respects an
+     explicit width. Without a fallback it would stretch this container to
+     the full width of the reading pane instead of capping at 600px. This
+     mso-only "ghost table" gives Outlook a real 600px-wide box; every other
+     client ignores the conditional comment entirely and just sees the
+     fluid table below it. -->
+<!--[if mso]>
+<table role="presentation" align="center" width="600" cellpadding="0" cellspacing="0" style="width:600px;">
+<tr><td>
+<![endif]-->
+<table role="presentation" cellpadding="0" cellspacing="0" style="table-layout:fixed;max-width:600px;width:100%;">
 
   <!-- Header band: real SoMe logo file -->
   <tr>
     <td class="sm-px card-bg" bgcolor="${CARD_BG}" style="background-color:${CARD_BG};border-radius:20px 20px 0 0;padding:22px 20px;border-bottom:1px solid ${BORDER_SOFT};">
-      <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
         <tr>
           <td style="vertical-align:middle;">
             <img src="${LOGO_URL}" width="110" height="61" alt="SoMe" style="display:block;width:110px;height:61px;max-width:100%;" />
@@ -455,7 +465,7 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
     <td class="card-bg" bgcolor="${CARD_BG}" style="background:${CARD_BG};border-radius:0 0 20px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.05),0 14px 36px rgba(21,11,46,0.12);">
 
       <!-- Intro -->
-      <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
         <tr><td class="sm-px" style="padding:38px 20px 8px;text-align:center;">
           <div style="font-size:26px;font-weight:800;color:${TEXT_PRIMARY};letter-spacing:-0.5px;line-height:1.3;">Veckans trender</div>
           <div style="font-size:15px;font-weight:500;color:${TEXT_MUTED};line-height:1.6;margin-top:10px;">Hej ${escapeHtml(data.recipientName)}, vi p&aring; SoMe har plockat ut veckans hetaste trender till dig inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span>.</div>
@@ -466,28 +476,28 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
 ${renderFeaturedTrend(featured, ctaUrl)}
 
       <!-- Divider label -->
-      <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
         <tr><td class="sm-px" style="padding:30px 20px 12px;">
           <div style="font-size:11px;font-weight:800;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:1.2px;text-align:center;border-bottom:1px solid ${BORDER_SOFT};padding-bottom:12px;">Fler trender att h&aring;lla koll p&aring;</div>
         </td></tr>
       </table>
 
       <!-- Trend grid -->
-      <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="table-layout:fixed;padding:0 20px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="table-layout:fixed;padding:0 20px;">
         <tr><td>
 ${gridHtml}
         </td></tr>
       </table>
 
       <!-- CTA -->
-      <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
         <tr><td class="sm-px" style="padding:34px 20px 12px;text-align:center;">
           <div style="font-size:16px;font-weight:800;color:${TEXT_PRIMARY};margin-bottom:14px;">Se vad som trendar inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span></div>
           <!-- Bulletproof button: padding lives on the <td>, not the <a>,
                since Outlook desktop often ignores padding on anchor tags
                and shrinks the tap target. VML rounded-rect gives Outlook a
                reliable filled, rounded, clickable shape underneath. -->
-          <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto;">
             <tr>
               <td align="center" bgcolor="${ACCENT}" style="background-color:${ACCENT};border-radius:12px;box-shadow:0 4px 18px rgba(118,54,236,0.35);">
                 <!--[if mso]>
@@ -507,7 +517,7 @@ ${gridHtml}
       </table>
 
       <!-- Footer (inside the card) -->
-      <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
         <tr><td class="sm-px" style="padding:0 20px 36px;text-align:center;font-size:11.5px;color:${TEXT_MUTED};line-height:1.7;">
           <img src="${LOGO_URL}" width="160" height="89" alt="SoMe" style="display:block;width:160px;height:89px;max-width:100%;margin:0 auto 18px;" />
           <div style="font-size:12px;color:${TEXT_MUTED};margin-bottom:4px;">N&auml;sta utskick kommer m&aring;ndag kl. 08:00</div>
@@ -520,6 +530,10 @@ ${gridHtml}
   </tr>
 
 </table>
+<!--[if mso]>
+</td></tr>
+</table>
+<![endif]-->
 </td></tr>
 </table>
 </body>
