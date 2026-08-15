@@ -302,12 +302,13 @@ function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number)
     rows.push(`
           <table width="100%" cellpadding="0" cellspacing="0"${i > 0 ? ' style="margin-top:14px;"' : ""}>
             <tr>
-              <td width="48%" style="vertical-align:top;">${left}</td>
-              <!-- Fixed pixel gutter, not a percentage width — an empty
-                   percentage-width cell can collapse to 0 in the Gmail
-                   app, leaving the two cards touching with no gap. -->
-              <td width="14" style="font-size:1px;line-height:1px;">&nbsp;</td>
-              <td width="48%" style="vertical-align:top;">${right ?? ""}</td>
+              <!-- Gutter as padding on the card cells themselves, not a
+                   separate empty spacer cell — an empty cell (even with a
+                   fixed pixel width) rendered inconsistently between rows
+                   in the Gmail app, sometimes collapsing to 0. Padding on
+                   a cell that already holds content is far more reliable. -->
+              <td width="50%" style="vertical-align:top;padding-right:7px;">${left}</td>
+              <td width="50%" style="vertical-align:top;padding-left:7px;">${right ?? ""}</td>
             </tr>
           </table>`);
   }
