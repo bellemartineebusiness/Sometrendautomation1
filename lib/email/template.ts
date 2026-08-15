@@ -303,7 +303,10 @@ function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number)
           <table width="100%" cellpadding="0" cellspacing="0"${i > 0 ? ' style="margin-top:14px;"' : ""}>
             <tr>
               <td width="48%" style="vertical-align:top;">${left}</td>
-              <td width="4%"></td>
+              <!-- Fixed pixel gutter, not a percentage width — an empty
+                   percentage-width cell can collapse to 0 in the Gmail
+                   app, leaving the two cards touching with no gap. -->
+              <td width="14" style="font-size:1px;line-height:1px;">&nbsp;</td>
               <td width="48%" style="vertical-align:top;">${right ?? ""}</td>
             </tr>
           </table>`);
