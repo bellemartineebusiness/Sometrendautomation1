@@ -38,9 +38,20 @@ const PLATFORM_TILE_STYLES: Record<string, string> = {
   youtube: "background-color:#ff0000;",
 };
 const DEFAULT_TILE_STYLE = `background-color:${ACCENT};`;
+const PLATFORM_TILE_FALLBACK_COLORS: Record<string, string> = {
+  tiktok: "#111827",
+  instagram: "#c13584",
+  youtube: "#ff0000",
+};
 
 function platformTileStyle(platform: string): string {
   return PLATFORM_TILE_STYLES[platform.toLowerCase()] ?? DEFAULT_TILE_STYLE;
+}
+
+// VML's <v:fill color> only accepts a flat color, not a CSS gradient —
+// used for the Outlook-only background fallback.
+function platformTileFallbackColor(platform: string): string {
+  return PLATFORM_TILE_FALLBACK_COLORS[platform.toLowerCase()] ?? ACCENT;
 }
 
 // Platform glyphs as real PNG files (not inline <svg>) — Gmail strips inline
@@ -63,17 +74,22 @@ const RANK_TEXT = TEXT_PRIMARY;
 
 function rankBadge(rank: number, isFirst: boolean): string {
   const size = isFirst ? 26 : 22;
-  const bg = isFirst ? FIRST_BG : RANK_BG;
+  // Outlook desktop doesn't understand rgba() and drops the whole
+  // declaration — a solid hex declared first is kept as the fallback there,
+  // while clients that do support rgba() apply the second (translucent)
+  // declaration since it comes later in the same style attribute.
+  const bg = isFirst ? `background-color:${FIRST_BG};` : `background-color:#f3f0fb;background-color:${RANK_BG};`;
   const color = isFirst ? FIRST_TEXT : RANK_TEXT;
-  return `<table cellpadding="0" cellspacing="0" style="width:${size}px;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="background-color:${bg};border-radius:50%;font-size:${isFirst ? 13 : 11}px;font-weight:800;color:${color};box-shadow:0 2px 6px rgba(0,0,0,0.25);">${rank}</td></tr></table>`;
+  return `<table cellpadding="0" cellspacing="0" style="width:${size}px;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="${bg}border-radius:50%;font-size:${isFirst ? 13 : 11}px;font-weight:800;color:${color};box-shadow:0 2px 6px rgba(0,0,0,0.25);">${rank}</td></tr></table>`;
 }
 
 function platformIconBadge(platform: string, size: number): string {
   const key = platform.toLowerCase();
   const iconUrl = PLATFORM_ICON_URLS[key];
+  const iconLabel = key.charAt(0).toUpperCase() + key.slice(1);
   const glyphSize = Math.round(size * 0.58);
   const glyph = iconUrl
-    ? `<img src="${iconUrl}" width="${glyphSize}" height="${glyphSize}" alt="" style="display:block;width:${glyphSize}px;height:${glyphSize}px;" />`
+    ? `<img src="${iconUrl}" width="${glyphSize}" height="${glyphSize}" alt="${iconLabel}" style="display:block;width:${glyphSize}px;height:${glyphSize}px;max-width:100%;" />`
     : `<div style="width:${Math.round(glyphSize * 0.5)}px;height:${Math.round(glyphSize * 0.5)}px;border-radius:50%;background:#fff;"></div>`;
   return `<table cellpadding="0" cellspacing="0" style="width:${size}px;"><tr><td width="${size}" height="${size}" align="center" valign="middle" style="${platformTileStyle(platform)}border-radius:${Math.round(size * 0.28)}px;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
     ${glyph}
@@ -159,27 +175,44 @@ function renderPhotoCard(params: {
   trend: TrendItem;
   ctaUrl: string;
   height: number;
+  widthPx: number;
   radius: number;
   heightClass: string;
   content: string;
 }): string {
-  const { trend, ctaUrl, height, radius, heightClass, content } = params;
+  const { trend, ctaUrl, height, widthPx, radius, heightClass, content } = params;
   const thumb = trend.thumbnailUrl ? blurredThumbnailUrl(trend.thumbnailUrl, 600) : undefined;
   const bgImageCss = thumb
     ? `background-image:url('${escapeHtml(thumb)}');background-size:cover;background-position:center;`
     : "";
   const bgAttr = thumb ? ` background="${escapeHtml(thumb)}"` : "";
+  // Outlook desktop (Word engine) renders the `background` attribute
+  // unreliably — it can tile or misalign instead of cropping to cover like
+  // CSS background-size:cover does. VML (mso-only, ignored by every other
+  // client) gives it a precise, cropped fill instead of the default.
+  const vmlFill = thumb
+    ? `<v:fill type="frame" src="${escapeHtml(thumb)}" color="#1c1033" />`
+    : `<v:fill color="${platformTileFallbackColor(trend.platform)}" />`;
 
   return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:separate;box-shadow:0 8px 24px rgba(21,11,46,0.22);border-radius:${radius}px;">
     <tr>
       <td class="${heightClass}"${bgAttr} bgcolor="#1c1033" height="${height}" style="${platformTileStyle(trend.platform)}${bgImageCss}background-color:#1c1033;border-radius:${radius}px;height:${height}px;">
+        <!--[if mso]>
+        <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:${widthPx}px;height:${height}px;">
+        ${vmlFill}
+        <v:textbox inset="0,0,0,0">
+        <![endif]-->
         <a href="${escapeHtml(ctaUrl)}" style="display:block;text-decoration:none;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:rgba(10,6,20,0.56);border-radius:${radius}px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#150b28;background-color:rgba(10,6,20,0.56);border-radius:${radius}px;">
             <tr><td style="padding:16px;">
               ${content}
             </td></tr>
           </table>
         </a>
+        <!--[if mso]>
+        </v:textbox>
+        </v:rect>
+        <![endif]-->
       </td>
     </tr>
   </table>`;
@@ -194,7 +227,7 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
   const topRow = `
           <table width="100%" cellpadding="0" cellspacing="0"><tr>
             <td style="vertical-align:middle;">
-              <div style="display:inline-block;background:rgba(255,255,255,0.16);color:#ffffff;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:20px;">Veckans st&ouml;rsta trend</div>
+              <div style="display:inline-block;background-color:#3a2f52;background-color:rgba(255,255,255,0.16);color:#ffffff;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;border-radius:20px;">Veckans st&ouml;rsta trend</div>
             </td>
             <td align="right" style="vertical-align:middle;">${rankBadge(1, true)}</td>
           </tr></table>`;
@@ -202,8 +235,8 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
   const bottomBlock = `
           <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px;"><tr><td align="center">${platformIconBadge(trend.platform, 36)}</td></tr></table>
           <div style="font-size:23px;font-weight:800;color:#ffffff;letter-spacing:-0.4px;line-height:1.25;margin-bottom:6px;text-align:center;">${escapeHtml(trend.title)}</div>
-          ${trend.leadIn ? `<div style="font-size:13.5px;font-style:italic;color:rgba(255,255,255,0.85);margin-bottom:8px;text-align:center;">${escapeHtml(trend.leadIn)}</div>` : ""}
-          <div style="font-size:13.5px;color:rgba(255,255,255,0.92);line-height:1.6;margin-bottom:18px;text-align:center;">${escapeHtml(trend.description)}</div>
+          ${trend.leadIn ? `<div style="font-size:13.5px;font-style:italic;color:#f1edfb;color:rgba(255,255,255,0.85);margin-bottom:8px;text-align:center;">${escapeHtml(trend.leadIn)}</div>` : ""}
+          <div style="font-size:13.5px;color:#f8f7fd;color:rgba(255,255,255,0.92);line-height:1.6;margin-bottom:18px;text-align:center;">${escapeHtml(trend.description)}</div>
 
           <table width="100%" cellpadding="0" cellspacing="0" style="table-layout:fixed;">
             <tr>
@@ -211,7 +244,7 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
                 <span style="font-size:20px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;">${growthSentence(trend.growthPercent)}</span>
               </td>
               <td width="90" style="vertical-align:middle;">
-                <img src="${sparkUrl}" width="90" height="34" alt="" style="display:block;margin-left:auto;width:90px;height:34px;" />
+                <img src="${sparkUrl}" width="90" height="34" alt="Trendkurva senaste veckan" style="display:block;margin-left:auto;width:90px;height:34px;max-width:100%;" />
               </td>
             </tr>
           </table>`;
@@ -228,7 +261,7 @@ function renderFeaturedTrend(trend: TrendItem, ctaUrl: string): string {
   return `
       <table width="100%" cellpadding="0" cellspacing="0" class="sm-px" style="padding:22px 36px 0;">
         <tr><td>
-          ${renderPhotoCard({ trend, ctaUrl, height: 420, radius: 20, heightClass: "sm-hero", content })}
+          ${renderPhotoCard({ trend, ctaUrl, height: 420, widthPx: 528, radius: 20, heightClass: "sm-hero", content })}
         </td></tr>
       </table>`;
 }
@@ -245,7 +278,7 @@ function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string
 
   const bottomBlock = `
                     <div style="font-size:14px;font-weight:800;color:#ffffff;line-height:1.3;margin-bottom:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(trend.title)}</div>
-                    <div style="font-size:11.5px;color:rgba(255,255,255,0.85);line-height:1.5;margin-bottom:10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(trend.description)}</div>
+                    <div style="font-size:11.5px;color:#f1edfb;color:rgba(255,255,255,0.85);line-height:1.5;margin-bottom:10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(trend.description)}</div>
                     <div style="font-size:13px;font-weight:800;color:${colors.text};font-variant-numeric:tabular-nums;text-align:center;">${formatGrowth(trend.growthPercent)}</div>`;
 
   const content = `
@@ -254,7 +287,7 @@ function renderTrendCard(trend: TrendItem, ctaUrl: string, rank: number): string
             <tr><td valign="bottom">${bottomBlock}</td></tr>
           </table>`;
 
-  return renderPhotoCard({ trend, ctaUrl, height: 260, radius: 16, heightClass: "sm-card", content });
+  return renderPhotoCard({ trend, ctaUrl, height: 260, widthPx: 253, radius: 16, heightClass: "sm-card", content });
 }
 
 function renderTrendGrid(trends: TrendItem[], ctaUrl: string, startRank: number): string {
@@ -367,7 +400,7 @@ export function renderTrendsEmail(data: GenerateEmailRequest): GenerateEmailResp
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="vertical-align:middle;">
-            <img src="${LOGO_URL}" width="110" height="61" alt="SoMe" style="display:block;width:110px;height:61px;" />
+            <img src="${LOGO_URL}" width="110" height="61" alt="SoMe" style="display:block;width:110px;height:61px;max-width:100%;" />
           </td>
           <td align="right" style="vertical-align:middle;font-size:10.5px;font-weight:700;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:1.2px;">Trender</td>
         </tr>
@@ -408,14 +441,33 @@ ${gridHtml}
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr><td class="sm-px" style="padding:34px 36px 12px;text-align:center;">
           <div style="font-size:16px;font-weight:800;color:${TEXT_PRIMARY};margin-bottom:14px;">Se vad som trendar inom <span style="${GRADIENT_TEXT_STYLE}">${escapeHtml(data.niche)}</span></div>
-          <a href="${escapeHtml(ctaUrl)}" class="cta-btn" style="display:inline-block;background:${ACCENT};color:#ffffff;text-decoration:none;font-size:15px;font-weight:800;padding:16px 32px;border-radius:12px;letter-spacing:0.2px;box-shadow:0 4px 18px rgba(118,54,236,0.35);">Se dina trender &rarr;</a>
+          <!-- Bulletproof button: padding lives on the <td>, not the <a>,
+               since Outlook desktop often ignores padding on anchor tags
+               and shrinks the tap target. VML rounded-rect gives Outlook a
+               reliable filled, rounded, clickable shape underneath. -->
+          <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+            <tr>
+              <td align="center" bgcolor="${ACCENT}" style="background-color:${ACCENT};border-radius:12px;box-shadow:0 4px 18px rgba(118,54,236,0.35);">
+                <!--[if mso]>
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeHtml(ctaUrl)}" style="height:52px;v-text-anchor:middle;width:220px;" arcsize="23%" stroke="f" fillcolor="${ACCENT}">
+                <w:anchorlock/>
+                <center>
+                <![endif]-->
+                <a href="${escapeHtml(ctaUrl)}" class="cta-btn" style="display:inline-block;background-color:${ACCENT};color:#ffffff;text-decoration:none;font-size:15px;font-weight:800;line-height:20px;padding:16px 32px;letter-spacing:0.2px;border-radius:12px;">Se dina trender &rarr;</a>
+                <!--[if mso]>
+                </center>
+                </v:roundrect>
+                <![endif]-->
+              </td>
+            </tr>
+          </table>
         </td></tr>
       </table>
 
       <!-- Footer (inside the card) -->
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr><td class="sm-px" style="padding:0 36px 36px;text-align:center;font-size:11.5px;color:${TEXT_MUTED};line-height:1.7;">
-          <img src="${LOGO_URL}" width="160" height="89" alt="SoMe" style="display:block;width:160px;height:89px;margin:0 auto 18px;" />
+          <img src="${LOGO_URL}" width="160" height="89" alt="SoMe" style="display:block;width:160px;height:89px;max-width:100%;margin:0 auto 18px;" />
           <div style="font-size:12px;color:${TEXT_MUTED};margin-bottom:4px;">N&auml;sta utskick kommer m&aring;ndag kl. 08:00</div>
           Du f&aring;r detta mejl varje vecka fr&aring;n SoMe.<br>
           <a href="${escapeHtml(unsubscribeUrl)}" style="color:${TEXT_MUTED};text-decoration:underline;">Avsluta prenumerationen</a>
